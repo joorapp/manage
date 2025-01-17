@@ -1,0 +1,58 @@
+name: Deploy to GoDaddy Server
+
+on:
+  push:
+    branches:
+      - main  # Deploy whenever changes are pushed to the main branch
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the latest code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Install SSH and SCP for deployment
+      - name: Install SSH and SCP
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      # Step 3: Debug environment variables
+      - name: Debug Environment Variables
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+        run: |
+          echo "Debugging deployment variables..."
+          echo "Host: $HOST"
+          echo "Username: $USERNAME"
+          echo "Public HTML Path: /home/$USERNAME/public_html/m"
+
+      # Step 4: Test SSH connection
+      - name: Test SSH Connection
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+        run: |
+          echo "Testing SSH connection..."
+          sshpass -p $PASSWORD ssh -o "StrictHostKeyChecking=no" $USERNAME@$HOST "echo 'SSH connection successful to $HOST'"
+
+      # Step 5: Deploy to GoDaddy server using SCP
+      - name: Deploy to GoDaddy Server
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+        run: |
+          echo "Starting deployment..."
+          sshpass -p $PASSWORD scp -o "StrictHostKeyChecking=no" -r $GITHUB_WORKSPACE/* $USERNAME@$HOST:/home/$USERNAME/public_html/m
+          echo "Deployment completed successfully!"
+
+      # Step 6: Notify success
+      - name: Notify Success
+        run: echo "Deployment to GoDaddy server successful."
+        
