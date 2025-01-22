@@ -1,9 +1,6 @@
 name: Deploy to GoDaddy Server
 
 on:
-  push:
-    branches:
-      - main  # Deploy whenever changes are pushed to the main branch
   workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
